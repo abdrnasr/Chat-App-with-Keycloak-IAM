@@ -1,7 +1,8 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
-import KeycloakProvider from "next-auth/providers/keycloak";
-import { GetUserPKByUUID, CreateNewUserRecord } from "@/lib/dbquery";
+import NextAuth from "next-auth"
 import { decodeJwt } from "@/lib/utils";
+import { CreateNewUserRecord, GetUserPKByUUID } from "./lib/dbquery";
+import Keycloak from "next-auth/providers/keycloak"
+
 
 type KC = {
   preferred_username: string;
@@ -16,18 +17,10 @@ type Token= {
   roles: string[];
 }
 
-type Session ={
-    id?: number;
-    name?: string;
-    roles?: string[];
-    image?: string;
-    email?: string;
-}
-
-export const authOptions: NextAuthOptions = {
-  session: { strategy: "jwt" },
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
-    KeycloakProvider({
+    Keycloak({
       issuer: process.env.KEYCLOAK_ISSUER!,
       clientId: process.env.KEYCLOAK_CLIENT_ID!,
       clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
@@ -74,7 +67,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-};
+})
 
-export const handler = NextAuth(authOptions);
  

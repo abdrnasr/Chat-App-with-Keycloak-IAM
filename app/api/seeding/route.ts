@@ -3,10 +3,8 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/lib/authcheck";
-import { authOptions } from "@/lib/auth";
 import { User } from "@/lib/types";
 import { getErrorMessage } from "@/lib/utils";
 import { RowDataPacket } from "mysql2";

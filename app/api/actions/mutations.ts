@@ -6,9 +6,8 @@ import { getToken } from "next-auth/jwt";
 import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { hasPermission } from "@/lib/authcheck";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { User } from "@/lib/types";
+import { auth } from "@/auth";
 
 const createFormSchema = z.object({
   text: z.string().trim().min(1, "Text is required").max(1000),
@@ -16,7 +15,7 @@ const createFormSchema = z.object({
 
 export async function PostMessageAction(formData: FormData) {
 
-  const session = await getServerSession(authOptions)
+  const session = await auth();
 
   if (!session) {
       return {error: "Unauthorized"};
@@ -31,7 +30,7 @@ export async function PostMessageAction(formData: FormData) {
   const token = await getToken({
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     req: { headers: headers(), cookies: await cookies() } as any,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.AUTH_SECRET,
   });
 
   if (!token) {
@@ -60,7 +59,7 @@ const messageDeleteScheme = z.number();
 
 export async function DeleteMessage(deleteRequest:unknown) {
 
-  const session = await getServerSession(authOptions)
+  const session = await auth();
 
   if (!session) {
       return {error: "Unauthorized"};
@@ -93,7 +92,7 @@ const messageEditScheme = z.object({
 
 export async function EditMessage(updateData:unknown) {
 
-  const session = await getServerSession(authOptions)
+    const session = await auth();
 
   console.log(updateData)
   if (!session) {

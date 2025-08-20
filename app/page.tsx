@@ -4,16 +4,16 @@ import { Suspense } from 'react';
 import MessageForm from '@/app/components/MessageForm';
 import { redirect } from "next/navigation";
 import MessagesServerFetcher  from './components/MessagesServerFetcher';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+
 import SignOutButton from './components/Minicomps/Signout';
 import { User } from '@/lib/types';
+import { auth } from '@/auth';
 
 export default async function Home({}) {
 
-  const session = await getServerSession(authOptions)
+  const user = await auth();
 
-  if (!session) {
+  if (!user) {
     redirect("/api/auth/signin");
   }
 
@@ -23,7 +23,7 @@ export default async function Home({}) {
         {/*Header"*/}
         <div className="navbar shadow-sm bg-base-300">
           <div className="flex-1">
-            <a className="btn btn-ghost text-xl"> Welcome <strong>{session.user?.name}</strong></a>
+            <a className="btn btn-ghost text-xl"> Welcome <strong>{user?.user?.name}</strong></a>
           </div>
 
           <div className="flex-none">
@@ -37,7 +37,7 @@ export default async function Home({}) {
             <div className="flex-1 min-h-0 flex flex-col space-y-1 text-center">
               <Suspense fallback={<Loading/>}>
                 
-                <MessagesServerFetcher user={session.user as User} />
+                <MessagesServerFetcher user={user.user as User} />
               </Suspense>
 
             </div>
