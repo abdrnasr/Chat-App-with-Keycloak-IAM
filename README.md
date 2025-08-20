@@ -1,36 +1,194 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📑 Chat App with Keycloak IAM
 
-## Getting Started
+- [📝 Introduction](#-introduction)  
+  - [Computer Screenshot](#computer)  
+  - [Mobile Screenshot](#mobile)  
+- [🔑 What the App Is](#-what-the-app-is)  
+- [🎯 Why It Was Developed](#-why-it-was-developed)  
+- [🚫 What This App Is Not](#-what-this-app-is-not)  
+- [⚙️ Tech Stack](#️-tech-stack)  
+- [🚀 Installation and Deployment](#-installation-and-deployment)  
+  - [Prerequisites](#prerequisites)  
+  - [Keycloak Setup](#keycloak-setup)  
+  - [MySQL Setup](#mysql-setup)  
+  - [App Setup](#app-setup)  
+  - [Variable Explanation](#variable-explanation)  
+  - [Running the App](#running-the-app)  
+  - [Database Seeding](#database-seeding)  
+- [🔒 Security Discussion](#security-discussion)  
+  - [Setup](#setup)  
+  - [IAM](#iam)  
+  - [App Runtime](#app-runtime)  
+  
+# 📝 Introduction
 
-First, run the development server:
+A lightweight chat application designed to demonstrate secure authentication and authorization using **Keycloak** as the Identity and Access Management (IAM) system, with **Role-Based Access Control (RBAC)** for managing user permissions.  
 
+
+### Computer
+<p align="center">
+  <img src="repo_resources/Computer_Screen.png">
+</p>
+
+### Mobile
+<p align="center">
+  <img height=400 src="repo_resources/Mobile_Screen.PNG">
+</p>
+
+---
+
+## 🔑 What the App Is
+- **Authentication & Authorization Delegated to IAM** – The app does not handle sign-in directly; all sign in requests are handled by the IAM. Also, the IAM defines the role of each registered user, which grants each user different access rights.
+- **No Passwords Stored** – The app does not store or manage any sensitive credentials, this is entirely delegated to the IAM.  
+- **JWT-Based Security** – After login, users receive a **JWT (JSON Web Token)** containing their **roles and permissions**. Then, the application checks the JWT for every request/action to determine whether the user should be authorized or not.
+---
+
+## 🎯 Why It Was Developed
+- **Part of a Multi-Phase Enterprise Security Project** – This app is one component of a larger **Cybersecurity, Software Engineering, and DevSecOps project** that simulates a realistic enterprise environment, including IAM, secure CI/CD, centralized monitoring, secrets management, and attack simulation.   
+- **Role-Based Access Control (RBAC)** – Demonstrates how an IAM can enforce RBAC seamlessly within an application.  
+- **Reference Implementation** – Intended as a simple example for integrating apps with Keycloak IAM.  
+
+👉 [Learn more about the larger project here.](https://github.com/abdrnasr/Enterprise-Cybersecurity-DevSecOps-Environment-Lab)  
+
+---
+
+## 🚫 What This App Is Not
+- ❌ A full-fledged chat platform (no voice, video, or image sharing).  
+- ❌ A system with private chat rooms or complex social features.  
+- ❌ A real-time chatting app 
+- ❌ A production-ready messaging service — this is strictly a **demo/reference project**.  
+
+---
+
+## ⚙️ Tech Stack
+- **Frontend:** Next.js (React) 
+- **Backend:** Node.js with Server Actions / API routes  
+- **Authentication:** Keycloak (OIDC, JWT), Next-Auth   
+- **Database:** Minimal MySQL database to hold message and user data.
+
+Any IAM should work as long as you can define roles for each user. However, for this project Keycloak was chosen.
+
+---
+
+
+## 🚀 Installation and Deployment
+### Prerequisites
+- Node.js
+- Keycloak 
+- MySQL (Docker)
+
+### Keycloak Setup
+For Keycloak, I already have a manually deployed Keycloak instance in my environment, which can be found [here](https://github.com/abdrnasr/Enterprise-Cybersecurity-DevSecOps-Environment-Lab/tree/main/phase2_app_iam/lab-steps-phase-2.md). You can also deploy it using docker, but this would not be covered here.
+
+### MySQL Setup
+I have provided a [docker-compose](docker-compose.yml) file that deploys the MySQL and [Adminer](https://www.adminer.org/en/).
+
+```docker
+services:
+  db:
+    image: mysql:9.4
+    container_name: iam-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: iam_chat
+    ports:
+      - "3306:3306"           # host:container
+    volumes:
+      - mysql_data:/var/lib/mysql
+```
+This will deploy a MySQL instance that can be accessed using the following connection string:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+DATABASE_URL="mysql://root:pass@localhost:3306/iam_chat"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### App Setup
+To run the app, clone the project at some path. Then, you need to create a .env file that has the following variables
+```
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET="RANDOM_LONG_STRING"
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+KEYCLOAK_ISSUER=https://192.168.33.6/sec/realms/master
+KEYCLOAK_CLIENT_ID=chat-app
+KEYCLOAK_CLIENT_SECRET="Generated by keycloak"
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+DATABASE_NAME=iam_chat
+DATABASE_URL="mysql://root:pass@localhost:3306/iam_chat"
 
-## Learn More
+SEEDING_SECRET="ANOTHER_LONG_SEC"
+```
+### Variable Explanation:
+- **NEXTAUTH_URL**: The path to the base URL address to the Next.js app.
+- **NEXTAUTH_SECRET**: A random secret that next-auth uses to encrypt the user access token cookie, instead of storing it as plain text in the browser.
+- **KEYCLOAK_ISSUER**: The path to keycloak realm.
+- **KEYCLOAK_CLIENT**: The name of the client in Keycloak that you chose.
+- **KEYCLOAK_CLIENT_SECRET**: A secret generated by Keycloak to identify your client. This must be kept secret.
+- **DATABASE_NAME**: The name of the database used in MySQL.
+- **DATABASE_URL**: The connection string used by MySQL's client to interact with MySQL server.
+- **SEEDING_SECRET**: A secret that you generate to seed the database. Without it you cannot seed the database through the web app.
 
-To learn more about Next.js, take a look at the following resources:
+### Running The App
+After setting up these variables, you can now build and run the app.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Dev Build
+npm run dev
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# or
+# Production Build
+npm run build
+npm run start
+```
+### Database Seeding
+The app provides the route /api/seeding to create the database tables needed by the app. There are multiple ways to seed it.
+#### Method 1:
+You can seed the database by visiting the following URL and providing the SECRET as a search parameter.
 
-## Deploy on Vercel
+http://app-host-name:3000/api/seeding?secret=SEEDING_SECRET
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The **SEEDING_SECRET** is the same secret you have provided in the **.env** file. 
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### Method 2:
+
+If you prefer to avoid passing the secret through your browser as query parameter. You can use the [seeder.py](seeder.py) script that I provided, which sends the request through python as an HTTP header (header name:).
+
+```bash
+python seeder.py localhost:3000 $SEEDING_SECRET
+```
+
+With that done, you should be able to open your browser, sign in using Keycloak, and use the app.
+
+<a id="security-discussion"></a>
+
+
+## Security Discussion
+### Setup
+- The setup of this app uses the best practices to secure the apps secrets. That's no code files have any secret and they should not be hard coded into code.
+- Before the app can be used, you must seed the database. The seeding of the app can only be allowed to those possessing the **SEEDING_SECRET**.
+- You can automate the entire deployment process using scripts, and keep all secrets secure.
+### IAM
+- Users credentials and roles are entirely handled by the IAM. This allows for consistent accounts across multiple services without having to manage credentials for each app. 
+- Since roles are provided by the IAM, you could easily grant each user different roles without touching the application server.
+### App Runtime
+- All input fields were checked for Cross-Site Scripting and SQL Injection attacks.
+- All SQL queries use prepared statements to protect against injection attacks.
+- All insecure client data is validated at the server using [Zod](https://zod.dev/).
+- Next.js provides Cross Site Request Forgery protection for server actions, so all server actions are protected from CSRF.
+- Before the client can perform and action or access any protected route, the roles are checked. Different roles possess different permissions, and the permission can be assigned in the **lib/authcheck.ts** file.
+
+```typescript
+// Each role has a list of allowed permissions
+const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
+  'chat-admin': ["post.create", "post.edit", "post.delete", "post.view"],
+  'chat-editor': ["post.create", "post.edit", "post.view"],
+  'chat-user': ["post.view", "post.create"],
+};
+
+// Check if a user has a ROLE with the specific permission
+export function hasPermission(roles: string[], permission: string): boolean {
+  return roles.some(role => ROLE_PERMISSIONS[role]?.includes(permission));
+}
+```
+- Next-Auth protects session cookies by encryption.
+- Error paths are protected with conditionals and exception handling.
+

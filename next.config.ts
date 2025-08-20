@@ -1,7 +1,22 @@
-import type { NextConfig } from "next";
+import { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
+// next.config.js
+const nextConfig:NextConfig = {
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: [
+          {
+            loader: '@svgr/webpack',
+            options: {
+              icon: true,
+            },
+          },
+        ],
+        as: '*.js',
+      },
+    },
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
