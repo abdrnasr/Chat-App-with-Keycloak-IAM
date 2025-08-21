@@ -14,7 +14,8 @@
   - [App Setup](#app-setup)  
   - [Variable Explanation](#variable-explanation)  
   - [Running the App](#running-the-app)  
-  - [Database Seeding](#database-seeding)  
+  - [Database Seeding](#database-seeding) 
+- [⚠️ Known Limitations](#known-limitations) 
 - [🔒 Security Discussion](#security-discussion)  
   - [Setup](#setup)  
   - [IAM](#iam)  
@@ -63,13 +64,12 @@ A lightweight chat application designed to demonstrate secure authentication and
 ## ⚙️ Tech Stack
 - **Frontend:** Next.js (React) 
 - **Backend:** Node.js with Server Actions / API routes  
-- **Authentication:** Keycloak (OIDC, JWT), Next-Auth   
+- **Authentication:** Keycloak (OIDC, JWT), Auth.js 
 - **Database:** Minimal MySQL database to hold message and user data.
 
 Any IAM should work as long as you can define roles for each user. However, for this project Keycloak was chosen.
 
 ---
-
 
 ## 🚀 Installation and Deployment
 ### Prerequisites
@@ -140,7 +140,7 @@ npm run build
 npm run start
 ```
 ### Database Seeding
-The app provides the route /api/seeding to create the database tables needed by the app. There are multiple ways to seed it.
+For the app to function correctly, you need to have a database already in in MySQL. This database should be empty, and the app can construct the required tables on using the seeding endpoint. The app provides the route /api/seeding to create the database tables needed by the app. There are multiple ways to seed it.
 #### Method 1:
 You can seed the database by visiting the following URL and providing the SECRET as a search parameter.
 
@@ -158,10 +158,14 @@ python seeder.py localhost:3000 $SEEDING_SECRET
 
 With that done, you should be able to open your browser, sign in using Keycloak, and use the app.
 
+<a id="known-limitations"></a>
+
+## ⚠️ Known Limitations
+- **Base Address Change Is not Possible:** While I tried to find a way to implement it in the app, most quick plug-in authentication libraries seem to struggle with this very issue (Next-Auth, Auth.js, & Better Auth). Thus, you need to host this on the base address on a reverse proxy, or perform path truncation on the reverse proxy itself. However, given enough time, one can fully implement a full authentication solution from scratch.
+
 <a id="security-discussion"></a>
 
-
-## Security Discussion
+## 🔒 Security Discussion
 ### Setup
 - The setup of this app uses the best practices to secure the apps secrets. That's no code files have any secret and they should not be hard coded into code.
 - Before the app can be used, you must seed the database. The seeding of the app can only be allowed to those possessing the **SEEDING_SECRET**.
