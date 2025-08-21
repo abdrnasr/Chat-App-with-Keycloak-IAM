@@ -27,16 +27,6 @@ export async function PostMessageAction(formData: FormData) {
       return {error: "Missing Permissions"};
   }
 
-  const token = await getToken({
-    // eslint-disable-next-line  @typescript-eslint/no-explicit-any
-    req: { headers: headers(), cookies: await cookies() } as any,
-    secret: process.env.AUTH_SECRET,
-  });
-
-  if (!token) {
-      return {error: "Token Parsing Error"};
-  }
-
   const raw = {
     text: formData.get("text"),
   };
@@ -47,7 +37,7 @@ export async function PostMessageAction(formData: FormData) {
   }
 
   try{
-    await PostMessage(token.dbId as number, parsed.data.text);
+    await PostMessage(usr.dbId as number, parsed.data.text);
   } catch (err:unknown) {
     return {error: "Database Error"}; 
   }
@@ -92,9 +82,8 @@ const messageEditScheme = z.object({
 
 export async function EditMessage(updateData:unknown) {
 
-    const session = await auth();
+  const session = await auth();
 
-  console.log(updateData)
   if (!session) {
       return {error: "Unauthorized"};
   }

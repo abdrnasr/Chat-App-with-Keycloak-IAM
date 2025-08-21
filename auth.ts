@@ -15,9 +15,11 @@ type Token= {
   dbId: number;
   UUID: string;
   roles: string[];
+  username: string;
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     Keycloak({
@@ -30,6 +32,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, account }) {
       if (account?.access_token) {
+
         const accessToken = decodeJwt<KC>(account.access_token);
         const clientId = process.env.KEYCLOAK_CLIENT_ID!;
         const clientRoles = accessToken.resource_access?.[clientId]?.roles ?? [];
@@ -46,6 +49,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             await CreateNewUserRecord(uuid, username);
             id = await GetUserPKByUUID(uuid);
           }
+          (token as Token).username = username;
           (token as Token).dbId = id;
           (token as Token).UUID = uuid;
         }catch(err:unknown){
@@ -61,6 +65,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         ...session.user,
         id: (token as Token).UUID ?? null,
         roles: (token as Token).roles ?? [],
+        username: (token as Token).username ?? null,
+        dbId: (token as Token).dbId ?? null,
       // eslint-disable-next-line  @typescript-eslint/no-explicit-any
       } as any;
 

@@ -23,7 +23,6 @@ export async function GET(req: NextRequest) {
     req.nextUrl.searchParams.get("secret") ||
     req.headers.get("x-seeding-secret");
 
-    console.log(provided)
   if (provided !== envSecret) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
@@ -41,7 +40,7 @@ export async function GET(req: NextRequest) {
       const usersTableExists = rows[0]["users_table_exists"];
 
       if(usersTableExists){
-        return NextResponse.json({ ok: true, error: "Database already seeded" }, { status: 200 });
+        return NextResponse.json({ ok: true, message: "Database already seeded." }, { status: 200 });
       }
      
     } catch (err:unknown) {

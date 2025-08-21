@@ -14,7 +14,7 @@ export default function Message( {message,user,onDelete,onEdit}:{message:Message
 
     const hasPostEdit= hasPermission(user.roles, "post.edit");
     const hasPostDelete= hasPermission(user.roles, "post.delete");
-    const isMessageOwner: boolean = equalsIgnoreCase(message.name, user.name)
+    const isMessageOwner: boolean = equalsIgnoreCase(message.name, user.username)
 
     return( 
     <>
