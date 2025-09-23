@@ -1,5 +1,6 @@
 stages:
   - secrets-scan
+  - dependency-scan
 
 variables:
   GITLEAKS_REPORT: "gitleaks-report.json"
@@ -25,3 +26,22 @@ gitleaks_scan:
     expire_in: 7 days
     paths:
       - $GITLEAKS_REPORT
+
+
+dependency_scan:
+  stage: dependency-scan
+  image: node:22-bullseye 
+  before_script:
+    - npm ci --ignore-scripts
+  script:
+    # Fail if High or Critical vulns found
+    - npm audit --audit-level=high
+  artifacts:
+    when: always
+    paths:
+       - npm-audit.json
+    expire_in: 7 days
+  after_script:
+    # Since the initial scan can fail, we need to do another scan that does not fail. 
+    # This scan will produce an output file that we can persist
+    - npm audit --json > npm-audit.json || true 
