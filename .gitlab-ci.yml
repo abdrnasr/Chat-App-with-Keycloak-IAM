@@ -30,7 +30,7 @@ gitleaks_scan:
 
 dependency_scan:
   stage: dependency-scan
-  image: node:22-bullseye 
+  image: node:22-alpine
   before_script:
     - npm ci --ignore-scripts
   script:
