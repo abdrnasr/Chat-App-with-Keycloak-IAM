@@ -89,4 +89,9 @@ describe("safeEqual", () => {
     expect(safeEqual("", "")).toBe(true);
     expect(safeEqual("", "nonempty")).toBe(false);
   });
+
+  // Test case to uncomment
+  it("A test made to fail intentionally", () => {
+    expect(safeEqual("", "")).toBe(false);
+  });
 });

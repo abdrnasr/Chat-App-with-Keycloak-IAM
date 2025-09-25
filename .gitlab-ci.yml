@@ -15,10 +15,10 @@ gitleaks_scan:
   image:
     name: zricethezav/gitleaks:v8.18.4 
     entrypoint: [""]   
-#  rules:
+  rules:
     # Run on all events on the default branch
     # - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-#    - when: never ##### DISABLED #####
+    - when: never ##### DISABLED #####
   script:
     # Basic scan of the repository working tree
     - gitleaks detect --source . --report-format json --report-path "$GITLEAKS_REPORT" --exit-code 1
@@ -31,8 +31,8 @@ gitleaks_scan:
 dependency_scan:
   stage: dependency-scan
   image: node:lts-alpine
-#  rules:
-#    - when: never ##### DISABLED #####
+  rules:
+    - when: never ##### DISABLED #####
   before_script:
     - npm ci --ignore-scripts
   script:
@@ -71,7 +71,7 @@ test-coverage:
     - npm run coverage:json
 
   artifacts:
-    when: always
+    when: on_success
     expire_in: 1 week
     paths:
       - coverage/coverage-final.json
