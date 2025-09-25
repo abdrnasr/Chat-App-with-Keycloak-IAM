@@ -23,7 +23,7 @@ export default defineConfig({
         "lib/types.ts",
 
         // exclude all visual sub-components
-        //"app/components/**", // Comment this to fail the test
+        "app/components/**", // Comment this to fail the test
 
         // exclude boilerplate layout
         "app/layout.tsx",
