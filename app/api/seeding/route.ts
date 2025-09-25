@@ -3,10 +3,7 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-import { redirect } from "next/navigation";
-import { hasPermission } from "@/lib/authcheck";
-import { User } from "@/lib/types";
-import { getErrorMessage } from "@/lib/utils";
+import { getErrorMessage, safeEqual } from "@/lib/utils";
 import { RowDataPacket } from "mysql2";
 
 export async function GET(req: NextRequest) {
@@ -22,8 +19,9 @@ export async function GET(req: NextRequest) {
   const provided =
     req.nextUrl.searchParams.get("secret") ||
     req.headers.get("x-seeding-secret");
+  
 
-  if (provided !== envSecret) {
+  if (!provided || !safeEqual(provided, envSecret)) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 

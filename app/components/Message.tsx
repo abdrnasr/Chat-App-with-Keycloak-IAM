@@ -7,8 +7,6 @@ import { equalsIgnoreCase, formatDate } from "@/lib/utils";
 
 import Pen from '@/public/icons/pen-square-svgrepo-com.svg';
 import Trash from '@/public/icons/trash-can-svgrepo-com.svg';
-import { getSession } from "next-auth/react";
-
 
 export default function Message( {message,user,onDelete,onEdit}:{message:MessageRow, user:User,onDelete: (msg: MessageRow) => void,onEdit: (msg: MessageRow) => void} ) {
 

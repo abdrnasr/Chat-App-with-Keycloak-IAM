@@ -49,9 +49,7 @@ export function getErrorMessage(err: unknown): string {
   if (typeof err === "string") return err;
   return "Unknown error";
 }
-
-
-function safeEqual(a: string, b: string) {
+export function safeEqual(a: string, b: string) {
   const A = Buffer.from(a, 'utf8')
   const B = Buffer.from(b, 'utf8')
   if (A.length !== B.length) return false

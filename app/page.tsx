@@ -8,6 +8,7 @@ import MessagesServerFetcher  from './components/MessagesServerFetcher';
 import SignOutButton from './components/Minicomps/Signout';
 import { User } from '@/lib/types';
 import { auth } from '@/auth';
+import Loading from './components/Minicomps/Loading';
 
 export default async function Home({}) {
 
@@ -50,7 +51,5 @@ export default async function Home({}) {
   );
 }
 
-function Loading() {
-  return <div className='flex justify-center'><span className="loading loading-infinity loading-xl"></span></div>
-} 
+
 
