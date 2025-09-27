@@ -22,11 +22,7 @@ export async function PostMessageAction(formData: FormData) {
 
   const usr= session.user as User;
 
-  if(hasPermission(usr.roles, "post.create")==false) {
-      return {error: "Missing Permissions"};
-  }
-
-  if(hasPermission(usr.roles, "post.create")==false) {
+  if(!hasPermission(usr.roles, "post.create")) {
       return {error: "Missing Permissions"};
   }
 
