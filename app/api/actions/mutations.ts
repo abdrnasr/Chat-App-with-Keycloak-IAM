@@ -26,6 +26,10 @@ export async function PostMessageAction(formData: FormData) {
       return {error: "Missing Permissions"};
   }
 
+  if(hasPermission(usr.roles, "post.create")==false) {
+      return {error: "Missing Permissions"};
+  }
+
   const raw = {
     text: formData.get("text"),
   };

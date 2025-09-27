@@ -51,11 +51,10 @@ dependency_scan:
     # This scan will produce an output file that we can persist
     - npm audit --json > npm-audit.json || true 
 
+## THIS MUST BE ACTIVATED SINCE IT IS NEEDED BY THE NEXT STAGE
 test-coverage:
   image: node:lts
   stage: test-coverage
-  rules:
-    - when: never ##### DISABLED #####
   cache:
     key:
       files:
@@ -72,16 +71,18 @@ test-coverage:
     - npm ci
 
   script:
-    - npm run coverage:json
-
+    # - npm run coverage:json 
+    - npm run coverage # The above command only produces a JSON report
   artifacts:
     when: on_success
     expire_in: 1 week
     paths:
+      - coverage/lcov.info
       - coverage/coverage-final.json
 
 build-sonar:
   stage: sast-scan
+  needs: ["test-coverage"]  
   image: 
     name: sonarsource/sonar-scanner-cli:11
     entrypoint: [""]
