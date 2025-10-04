@@ -1,4 +1,4 @@
-stages: [auth]
+stages: [auth, DAST]
 
 variables:
   # KEYCLOAK_USER: $KEYCLOAK_USER
@@ -21,3 +21,31 @@ auth-cookies:
     paths:
       - cookies.json
       - cookies_header.txt
+
+zap_baseline:
+  stage: DAST
+  needs: ["auth-cookies"]  
+  image: zaproxy/zap-stable
+  variables:
+    ZAP_TARGET: "http://192.168.20.2:3005"
+  script:
+    - export ORG_WORK_DIR="$(pwd)"
+    # Create and move to the correct working directory
+    - mkdir -p /zap/wrk
+    # - cp cookies_header.txt /zap/wrk/
+    # - cd /zap/wrk
+    # Use the cookie header from the file
+    - export ZAP_AUTH_HEADER=Cookie
+    - export ZAP_AUTH_HEADER_VALUE="$(tr -d '\n\r' < cookies_header.txt)"
+    # Optional: limit header to a site name match
+    # - export ZAP_AUTH_HEADER_SITE="192.168.20.2"
+    - zap-baseline.py -t "$ZAP_TARGET" -I -r "zap-baseline-report.html" -J "zap-baseline-report.json" -w "zap-baseline-report.md"
+    - cp -r /zap/wrk/* "$ORG_WORK_DIR"/
+    # Stop the test service
+    # - ssh ${RSYNC_USER}@${RSYNC_HOST} "sudo systemctl start chatapp@test.service"
+  artifacts:
+    when: always
+    paths:
+      - zap-baseline-report.html
+      - zap-baseline-report.json
+      - zap-baseline-report.md
