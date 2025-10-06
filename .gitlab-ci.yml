@@ -1,13 +1,26 @@
-stages: ["build & release",auth, DAST,deploy]
+stages:
+  - secrets-scan
+  - dependency-scan
+  - test-coverage
+  - sast-scan
+  - "build & release"
+  - auth
+  - DAST
+  - deploy
 
 variables:
+  GITLEAKS_REPORT: "gitleaks-report.json"
+  GIT_STRATEGY: "clone"        # always do a fresh clone (no repo cache reuse)
+  GIT_CHECKOUT: "true"         # ensure working tree is checked out
+  GIT_DEPTH: "0"               # full history (set to "1" if you only need the tip)
+
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+
   RSYNC_USER: "app"
   RSYNC_HOST: "192.168.20.2"
   APP_BASE: "/srv/chatapp"
   RSYNC_BASE: "/srv/chatapp/release"
   
-  GIT_STRATEGY: clone
-
   # DO NOT FORGET to pass these variables in the CI/CD Settings, NOT HERE
   # SEEDING_CA_CERT: $SEEDING_CA_CERT -> TYPE: FILE
   # SEEDING_SECRET: $SEEDING_SECRET
@@ -22,6 +35,93 @@ variables:
 
   DMZ_USER: "dmz"
   DMZ_HOST: "192.168.10.2"
+
+gitleaks-scan:
+  stage: secrets-scan
+  image:
+    name: zricethezav/gitleaks:v8.18.4 
+    entrypoint: [""]   
+  script:
+    # Basic scan of the repository working tree
+    - gitleaks detect --source . --report-format json --report-path "$GITLEAKS_REPORT" --exit-code 1
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - $GITLEAKS_REPORT
+
+dependency-scan:
+  stage: dependency-scan
+  image: node:lts-alpine
+  before_script:
+    - npm ci --ignore-scripts
+  script:
+    # Fail if High or Critical vulns found
+    - npm audit --audit-level=high
+  artifacts:
+    when: always
+    paths:
+       - npm-audit.json
+    expire_in: 7 days
+  after_script:
+    # Since the initial scan can fail, we need to do another scan that does not fail. 
+    # This scan will produce an output file that we can persist
+    - npm audit --json > npm-audit.json || true 
+
+## THIS MUST BE ACTIVATED SINCE IT IS NEEDED BY THE NEXT STAGE
+test-coverage:
+  image: node:lts
+  stage: test-coverage
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+      - .next/
+    policy: pull-push
+
+  variables:
+    NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/.npm"
+
+  before_script:
+    - npm ci
+
+  script:
+    # - npm run coverage:json 
+    - npm run coverage # The above command only produces a JSON report
+  artifacts:
+    when: on_success
+    expire_in: 1 week
+    paths:
+      - coverage/lcov.info
+      - coverage/coverage-final.json
+
+sonar-scan:
+  stage: sast-scan
+  needs:
+  - job: test-coverage
+    artifacts: true
+  image: 
+    name: sonarsource/sonar-scanner-cli:11
+    entrypoint: [""]
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+      - "${SONAR_USER_HOME}/cache"
+      - sonar-scanner/
+      
+  script: 
+  - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}"
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
+    - if: $CI_COMMIT_BRANCH == 'main'
+    - if: $CI_COMMIT_BRANCH == 'develop'
+
+## Define Reusable Blocks
 
 .ssh_pk_setup: &ssh_pk_setup
   - mkdir -p ~/.ssh
@@ -87,7 +187,6 @@ variables:
 auth-cookies:
   stage: auth
   image: mcr.microsoft.com/playwright/python:v1.55.0-jammy
-  needs: ["build & release"]
 
   # These variables are used by the cookie generation script
   # The default values should work if your setup is similar
@@ -112,7 +211,7 @@ auth-cookies:
 zap_baseline:
   stage: DAST
   needs:
-  - job: "auth-cookies"
+  - job: "auth-cookies" # needs the cookies file
     artifacts: true   
   image: zaproxy/zap-stable
   variables:
@@ -137,10 +236,8 @@ zap_baseline:
 deploy:
   stage: deploy
   image: alpine:3.22
-  # needs:
-  #- job: "build & release" # It provides the timestamp in the timestamp.env artifact
-  #  artifacts: true
-  # - job: "zap_baseline" 
+#  needs:
+#  - job: "build & release" # It provides the timestamp in the timestamp.env artifact
   before_script:
     # Add hosts entry into the container
     - echo "$HOSTS_ENTRY" >> /etc/hosts
