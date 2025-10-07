@@ -20,6 +20,8 @@ import {
   EditMessageById,
   type MessageRow,
   type UserId,
+  getUserCount,
+  getMessageCount,
 } from "@/lib/dbquery";
 import { pool } from "@/lib/db";
 
@@ -144,4 +146,33 @@ describe("EditMessageById", () => {
       ["new content", 12]
     );
   });
+});
+
+
+describe("getUserCount", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns correct user count", async () => {
+    (pool.query as any).mockResolvedValueOnce([[{ count: 10 }]]);
+    const result = await getUserCount();
+    expect(result).toBe(10);
+    expect(pool.query).toHaveBeenCalledWith("SELECT COUNT(*) AS count FROM users");
+  });
+
+});
+
+describe("getMessageCount", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns correct message count", async () => {
+    (pool.query as any).mockResolvedValueOnce([[{ count: 25 }]]);
+    const result = await getMessageCount();
+    expect(result).toBe(25);
+    expect(pool.query).toHaveBeenCalledWith("SELECT COUNT(*) AS count FROM messages");
+  });
+
 });

@@ -63,3 +63,13 @@ export async function EditMessageById(messageId:number,text:string){
   await pool.query("UPDATE messages SET content = ? WHERE id = ?", [text, messageId]);
 }
 
+export async function getUserCount(): Promise<number> {
+  const [rows] = await pool.query("SELECT COUNT(*) AS count FROM users");
+  return (rows as RowDataPacket[])[0].count;
+}
+
+export async function getMessageCount(): Promise<number> {
+  const [rows] = await pool.query("SELECT COUNT(*) AS count FROM messages");
+  return (rows as RowDataPacket[])[0].count;
+}
+
