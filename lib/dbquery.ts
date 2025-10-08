@@ -73,3 +73,15 @@ export async function getMessageCount(): Promise<number> {
   return (rows as RowDataPacket[])[0].count;
 }
 
+export interface UserTableEntry extends RowDataPacket {
+  id: number;
+  keycloak_id: Buffer;
+  name: string;
+  created_at: Date;
+}
+
+
+export async function getAllUsers(): Promise<UserTableEntry[]> {
+  const [rows] = await pool.query("SELECT * FROM users");
+  return rows as UserTableEntry[];
+} 

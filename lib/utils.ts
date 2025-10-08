@@ -55,3 +55,12 @@ export function safeEqual(a: string, b: string) {
   if (A.length !== B.length) return false
   return crypto.timingSafeEqual(A, B)
 }
+
+export function bufferToUuid(buf: Buffer) {
+  if (!Buffer.isBuffer(buf) || buf.length !== 16) {
+    throw new Error('Expected a 16-byte Buffer');
+  }
+  return buf
+    .toString('hex')
+    .replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
+}

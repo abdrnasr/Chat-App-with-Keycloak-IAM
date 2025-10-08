@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 
 // 👇 Mock the module that exports `pool`
 vi.mock("@/lib/db", () => {
@@ -22,6 +22,8 @@ import {
   type UserId,
   getUserCount,
   getMessageCount,
+  getAllUsers,
+  UserTableEntry,
 } from "@/lib/dbquery";
 import { pool } from "@/lib/db";
 
@@ -175,4 +177,41 @@ describe("getMessageCount", () => {
     expect(pool.query).toHaveBeenCalledWith("SELECT COUNT(*) AS count FROM messages");
   });
 
+});
+
+
+vi.mock("./db", () => ({
+  pool: { query: vi.fn() },
+}));
+
+describe("getAllUsers", () => {
+  it("returns all users", async () => {
+    const now = new Date();
+    const mockRows = [
+      {
+        id: 1,
+        keycloak_id: Buffer.from("00112233445566778899aabbccddeeff", "hex"),
+        name: "Alice",
+        created_at: now,
+      },
+      {
+        id: 2,
+        keycloak_id: Buffer.from("ffeeddccbbaa99887766554433221100", "hex"),
+        name: "Bob",
+        created_at: now,
+      },
+    ] as UserTableEntry[];
+
+    (pool.query as Mock).mockResolvedValueOnce([mockRows]);
+
+    const result = await getAllUsers();
+
+    expect(pool.query).toHaveBeenCalledWith("SELECT * FROM users");
+    expect(result).toEqual(mockRows);
+  });
+
+  it("throws when query fails", async () => {
+    (pool.query as Mock).mockRejectedValueOnce(new Error("DB Error"));
+    await expect(getAllUsers()).rejects.toThrow("DB Error");
+  });
 });

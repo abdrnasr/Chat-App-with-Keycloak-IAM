@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { formatDate, equalsIgnoreCase, decodeJwt, getErrorMessage, safeEqual } from "@/lib/utils"; // <- fix path
+import { formatDate, equalsIgnoreCase, decodeJwt, getErrorMessage, safeEqual, bufferToUuid } from "@/lib/utils"; // <- fix path
 
 describe("formatDate", () => {
   const realToLocale = Date.prototype.toLocaleString;
@@ -69,6 +69,37 @@ describe("getErrorMessage", () => {
     expect(getErrorMessage({ code: 500 })).toBe("Unknown error");
     expect(getErrorMessage(null)).toBe("Unknown error");
     expect(getErrorMessage(undefined)).toBe("Unknown error");
+  });
+});
+
+describe('bufferToUuid', () => {
+  it('formats a 16-byte Buffer to UUID string', () => {
+    // 16 bytes: 00112233-4455-6677-8899-aabbccddeeff
+    const hex = '00112233445566778899aabbccddeeff';
+    const buf = Buffer.from(hex, 'hex');
+
+    const uuid = bufferToUuid(buf);
+
+    expect(uuid).toBe('00112233-4455-6677-8899-aabbccddeeff');
+    // sanity checks
+    expect(uuid).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+    );
+  });
+
+  it('throws for non-buffer input', () => {
+    // @ts-expect-error testing runtime validation
+    expect(() => bufferToUuid('not a buffer')).toThrow('Expected a 16-byte Buffer');
+  });
+
+  it('throws for buffer with wrong length (<16)', () => {
+    const buf = Buffer.alloc(15);
+    expect(() => bufferToUuid(buf)).toThrow('Expected a 16-byte Buffer');
+  });
+
+  it('throws for buffer with wrong length (>16)', () => {
+    const buf = Buffer.alloc(17);
+    expect(() => bufferToUuid(buf)).toThrow('Expected a 16-byte Buffer');
   });
 });
 
