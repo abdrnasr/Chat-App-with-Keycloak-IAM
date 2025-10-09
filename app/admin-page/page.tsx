@@ -5,7 +5,7 @@ import { User } from '@/lib/types';
 import { auth } from '@/auth';
 import SignOutButton from '../components/Minicomps/Signout';
 import { hasPermission } from "@/lib/authcheck";
-import { getAllUsers, getMessageCount, getUserCount, UserTableEntry } from "@/lib/dbquery";
+import { getAllUsers, UserTableEntry } from "@/lib/dbquery";
 import { bufferToUuid } from "@/lib/utils";
 
 export default async function AdminPage() {
@@ -48,7 +48,7 @@ export default async function AdminPage() {
   );
 }
 
-function TableElements({tableData}:{tableData:UserTableEntry[]}){
+function TableElements({ tableData }: { readonly tableData: readonly UserTableEntry[] }) {
 
   return(
     <div className="overflow-x-auto">
