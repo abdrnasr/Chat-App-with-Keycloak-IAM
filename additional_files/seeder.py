@@ -12,13 +12,13 @@ def run_seeding(base_url: str, secret: str):
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        print("✅ Seeding successful!")
+        print(" Seeding successful!")
         try:
             print("Response:", response.json())
         except ValueError:
             print("Response (non-JSON):", response.text)
     except requests.exceptions.RequestException as e:
-        print("❌ Seeding failed:", e)
+        print(" Seeding failed:", e)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
