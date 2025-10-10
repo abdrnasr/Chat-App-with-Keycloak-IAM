@@ -23,7 +23,6 @@ export default async function middleware(req: NextRequest) {
       await ForwardLog(req,res, pathname, start);
   }
     
-
   return res;
 }
 
