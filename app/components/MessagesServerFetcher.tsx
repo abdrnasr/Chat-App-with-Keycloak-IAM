@@ -17,7 +17,8 @@ export default async function Messages({ user }: { user: User }) {
   }catch(err:unknown){
     return (<DatabaseError />)
   }
-
 }
+
+
 
 

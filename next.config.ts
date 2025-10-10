@@ -1,8 +1,13 @@
 import { NextConfig } from "next";
+import pkg from './package.json' assert { type: 'json' };
+
 
 // next.config.js
 const nextConfig:NextConfig = {
-  turbopack: {
+  env:{
+    APP_VERSION: pkg.version
+  },
+  turbopack: {  
     rules: {
       '*.svg': {
         loaders: [
