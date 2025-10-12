@@ -1,58 +1,14 @@
 stages:
-  - release_start
-  # - secrets-scan
-  # - dependency-scan
-  # - test-coverage
-  # - sast-scan
+  - secrets-scan
+  -  dependency-scan
+  - test-coverage
+  - sast-scan
   - "build & release"
-  # - auth
-  # - DAST
+  - auth
+  - DAST
   - deploy
-  - release_finish
-  
-
-
-release:start:
-  stage: release_start
-  image: alpine:latest # or alpine:3.22.2 for pinning
-  script:
-    - apk add --no-cache coreutils
-    - STARTED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-    - echo "STARTED_AT=$STARTED_AT"          >> release.env
-    - echo "RELEASE_VERSION=${RELEASE_VERSION:-$CI_COMMIT_TAG}" >> release.env
-    - echo "COMMIT=${COMMIT:-$CI_COMMIT_SHORT_SHA}"             >> release.env
-    - echo "ENVIRONMENT=${ENVIRONMENT:-GitLab}" >> release.env
-  artifacts:
-    reports:
-      dotenv: release.env
-    expire_in: 1 day
-
-release:finish:
-  stage: release_finish
-  image: python:3.12.12-alpine
-  #needs: ["release:start"]
-  script:
-    - python3 additional_files/scripts/emit_release_event.py
-
 
 variables:
-
-  # Required CI/CD variables (set in GitLab → Settings → CI/CD → Variables):
-  # ES_URL (e.g., https://es.example.com:9200)
-  # ES_API_KEY
-
-  # ES_CA_CERT  (type = File; trusted CA bundle)  ← optional but recommended/required for self-signed certs
-  # Optional: ES_SKIP_TLS_VERIFY=1 -> disables TLS verification
-
-  # Automatically SET: RELEASE_VERSION
-
-  ES_INDEX: "app-releases"
-  ES_URL: "https://192.168.20.5:9200"
-  ENVIRONMENT: "production"
-
-
-  ### --------------------------------
-
   GITLEAKS_REPORT: "gitleaks-report.json"
   GIT_STRATEGY: "clone"        # always do a fresh clone (no repo cache reuse)
   GIT_CHECKOUT: "true"         # ensure working tree is checked out
@@ -80,7 +36,7 @@ variables:
   DMZ_USER: "dmz"
   DMZ_HOST: "192.168.10.2"
 
-.gitleaks-scan:
+gitleaks-scan:
   stage: secrets-scan
   image:
     name: zricethezav/gitleaks:v8.18.4 
@@ -94,7 +50,7 @@ variables:
     paths:
       - $GITLEAKS_REPORT
 
-.dependency-scan:
+dependency-scan:
   stage: dependency-scan
   image: node:lts-alpine
   before_script:
@@ -113,7 +69,7 @@ variables:
     - npm audit --json > npm-audit.json || true 
 
 ## THIS MUST BE ACTIVATED SINCE IT IS NEEDED BY THE NEXT STAGE
-.test-coverage:
+test-coverage:
   image: node:lts
   stage: test-coverage
   cache:
@@ -204,7 +160,7 @@ variables:
     reports:
       dotenv: timestamp.env
 
-.auth-cookies:
+auth-cookies:
   stage: auth
   image: mcr.microsoft.com/playwright/python:v1.55.0-jammy
 
@@ -228,7 +184,7 @@ variables:
       - cookies.json
       - cookies_header.txt
 
-.zap_baseline:
+zap_baseline:
   stage: DAST
   needs:
   - job: "auth-cookies" # needs the cookies file
@@ -256,8 +212,8 @@ variables:
 deploy:
   stage: deploy
   image: alpine:3.22
-  #  needs:
-  #  - job: "build & release" # It provides the timestamp in the timestamp.env artifact
+#  needs:
+#  - job: "build & release" # It provides the timestamp in the timestamp.env artifact
   before_script:
     # Add hosts entry into the container
     - echo "$HOSTS_ENTRY" >> /etc/hosts

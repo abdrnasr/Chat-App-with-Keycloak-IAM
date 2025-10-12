@@ -54,7 +54,7 @@ def main():
     index    = env("ES_INDEX", "app-releases")
     commit   = env("COMMIT", required=True)
     started  = env("STARTED_AT", required=True)
-    envname  = env("ENVIRONMENT", "GitLab")
+    envname  = env("ENVIRONMENT", "production")
     version = get_version_from_package_json()
     if not version:
         print("Error: RELEASE_VERSION not set and no version in package.json", file=sys.stderr)
