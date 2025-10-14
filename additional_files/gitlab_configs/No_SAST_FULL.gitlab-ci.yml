@@ -1,6 +1,6 @@
 stages:
   - secrets-scan
-  -  dependency-scan
+  - dependency-scan
   - test-coverage
   - sast-scan
   - "build & release"
