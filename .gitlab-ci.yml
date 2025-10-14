@@ -1,40 +1,15 @@
 stages:
   - release_start
-  # - secrets-scan
-  # - dependency-scan
-  # - test-coverage
+  - secrets-scan
+  - dependency-scan
+  - test-coverage
   # - sast-scan
   - "build & release"
-  # - auth
-  # - DAST
+  - auth
+  - DAST
   - deploy
   - release_finish
   
-
-
-release:start:
-  stage: release_start
-  image: alpine:latest # or alpine:3.22.2 for pinning
-  script:
-    - apk add --no-cache coreutils
-    - STARTED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-    - echo "STARTED_AT=$STARTED_AT"          >> release.env
-    - echo "RELEASE_VERSION=${RELEASE_VERSION:-$CI_COMMIT_TAG}" >> release.env
-    - echo "COMMIT=${COMMIT:-$CI_COMMIT_SHORT_SHA}"             >> release.env
-    - echo "ENVIRONMENT=${ENVIRONMENT:-GitLab}" >> release.env
-  artifacts:
-    reports:
-      dotenv: release.env
-    expire_in: 1 day
-
-release:finish:
-  stage: release_finish
-  image: python:3.12.12-alpine
-  #needs: ["release:start"]
-  script:
-    - python3 additional_files/scripts/emit_release_event.py
-
-
 variables:
 
   # Required CI/CD variables (set in GitLab → Settings → CI/CD → Variables):
@@ -80,7 +55,25 @@ variables:
   DMZ_USER: "dmz"
   DMZ_HOST: "192.168.10.2"
 
-.gitleaks-scan:
+
+
+
+release:start:
+  stage: release_start
+  image: alpine:latest # or alpine:3.22.2 for pinning
+  script:
+    - apk add --no-cache coreutils
+    - STARTED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    - echo "STARTED_AT=$STARTED_AT"          >> release.env
+    - echo "RELEASE_VERSION=${RELEASE_VERSION:-$CI_COMMIT_TAG}" >> release.env
+    - echo "COMMIT=${COMMIT:-$CI_COMMIT_SHORT_SHA}"             >> release.env
+    - echo "ENVIRONMENT=${ENVIRONMENT:-GitLab}" >> release.env
+  artifacts:
+    reports:
+      dotenv: release.env
+    expire_in: 1 day
+
+gitleaks-scan:
   stage: secrets-scan
   image:
     name: zricethezav/gitleaks:v8.18.4 
@@ -94,7 +87,7 @@ variables:
     paths:
       - $GITLEAKS_REPORT
 
-.dependency-scan:
+dependency-scan:
   stage: dependency-scan
   image: node:lts-alpine
   before_script:
@@ -113,7 +106,7 @@ variables:
     - npm audit --json > npm-audit.json || true 
 
 ## THIS MUST BE ACTIVATED SINCE IT IS NEEDED BY THE NEXT STAGE
-.test-coverage:
+test-coverage:
   image: node:lts
   stage: test-coverage
   cache:
@@ -204,7 +197,7 @@ variables:
     reports:
       dotenv: timestamp.env
 
-.auth-cookies:
+auth-cookies:
   stage: auth
   image: mcr.microsoft.com/playwright/python:v1.55.0-jammy
 
@@ -228,7 +221,7 @@ variables:
       - cookies.json
       - cookies_header.txt
 
-.zap_baseline:
+zap_baseline:
   stage: DAST
   needs:
   - job: "auth-cookies" # needs the cookies file
@@ -311,6 +304,13 @@ deploy:
     # SEEDING_ADDRESS="${RSYNC_HOST}:${APP_PORT}" -> E.g. "192.168.20.2:3001", when deployed in blue
     # - python3 seeder_sec.py "http://${SEEDING_ADDRESS}"
 
+
+release:finish:
+  stage: release_finish
+  image: python:3.12.12-alpine
+  #needs: ["release:start"]
+  script:
+    - python3 additional_files/scripts/emit_release_event.py
 
 ## If you want to use SAST with SonarQube, be sure to move sonar-project.properties in the root of the project
 # sonar-scan:

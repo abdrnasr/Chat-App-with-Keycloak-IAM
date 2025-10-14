@@ -48,7 +48,8 @@ A lightweight chat application designed to demonstrate secure authentication and
 ## Why It Was Developed
 - **Part of a Multi-Phase Enterprise Security Project** – This app is one component of a larger **Cybersecurity, Software Engineering, and DevSecOps project** that simulates a realistic enterprise environment, including IAM, secure CI/CD, centralized monitoring, secrets management, and attack simulation.   
 - **Role-Based Access Control (RBAC)** – Demonstrates how an IAM can enforce RBAC seamlessly within an application.  
-- **Reference Implementation** – Intended as a simple example for integrating apps with Keycloak IAM.  
+- **Reference Implementation** – Intended as a simple example for integrating apps with Keycloak IAM. 
+- **Utilized In Secure CI/CD Pipeline**  – The app was used to demonstrate a secure, End-to-End CI/CD Pipeline.
 
 [Learn more about the larger project here.](https://github.com/abdrnasr/Enterprise-Cybersecurity-DevSecOps-Environment-Lab)  
 
@@ -63,23 +64,23 @@ A lightweight chat application designed to demonstrate secure authentication and
 ---
 
 ## Tech Stack
-- **Frontend:** Next.js (React) 
-- **Backend:** Node.js with Server Actions / API routes  
+- **Frontend:** `Next.js (React) `
+- **Backend:** `Next.js` with Server Actions / API routes  
 - **Authentication:** Keycloak (OIDC, JWT), Auth.js 
-- **Database:** Minimal MySQL database to hold message and user data.
+- **Database:** Minimal `MySQL` database to hold message and user data.
 
-Any IAM should work as long as you can define roles for each user. However, for this project Keycloak was chosen.
+Any IAM should work as long as you can define roles for each user. However, for this project `Keycloak` was chosen.
 
 ---
 
 ## Installation and Deployment
 ### Prerequisites
-- Node.js
-- Keycloak 
-- MySQL (Docker)
+- `Node.js`
+- `Keycloak` 
+- `MySQL` (Docker)
 
 ### Keycloak Setup
-For Keycloak, I already have a manually deployed Keycloak instance in my environment, which can be found [here](https://github.com/abdrnasr/Enterprise-Cybersecurity-DevSecOps-Environment-Lab/tree/main/phase2_app_iam/lab-steps-phase-2.md). You can also deploy it using docker, but this would not be covered here.
+For Keycloak, I already have a manually deployed Keycloak instance in my environment, which can be found [here](https://github.com/abdrnasr/Enterprise-Cybersecurity-DevSecOps-Environment-Lab/tree/main/phase2_app_iam/lab-steps-phase-2.md). You can also deploy it using `docker`, but this would not be covered here.
 
 ### MySQL Setup
 I have provided a [docker-compose](docker-compose.yml) file that deploys the MySQL and [Adminer](https://www.adminer.org/en/). However, note that this is just a basic docker example file, and you should not use simple credentials or store secrets directly in this file.
@@ -168,12 +169,12 @@ With that done, you should be able to open your browser, sign in using Keycloak,
 
 <a id="known-limitations"></a>
 
-## ⚠️ Known Limitations
+## Known Limitations
 - **Base Address Change Is not Possible:** While I tried to find a way to implement it in the app, most quick plug-in authentication libraries seem to struggle with this very issue (Next-Auth, Auth.js, & Better Auth). Thus, you need to host this on the base address on a reverse proxy, or perform path truncation on the reverse proxy itself. However, given enough time, one can fully implement a full authentication solution from scratch.
 - **Intentional Bad Coding Practices:** The app contains various intentional poor coding practices, as there is chance that this app will be used as a part of Static Security Scanning (SAST). 
 <a id="security-discussion"></a>
 
-## 🔒 Security Discussion
+## Security Discussion
 ### Setup
 - The setup of this app uses the best practices to secure the apps secrets. That's no code files have any secret and they should not be hard coded into code.
 - Before the app can be used, you must seed the database. The seeding of the app can only be allowed to those possessing the **SEEDING_SECRET**.
